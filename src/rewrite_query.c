@@ -38,6 +38,7 @@ bool rewrite_query(PgSocket *client, PktHdr *pkt) {
 	char *new_io_buf;
 	char *remaining_buffer_ptr;
 	int new_pkt_len, remaining_buffer_len;
+	bool idle_tx = false;
 	int i;
 
 	if (!is_rewrite_enabled(client)) return true;
@@ -62,16 +63,22 @@ bool rewrite_query(PgSocket *client, PktHdr *pkt) {
 		fatal("Invalid packet type - expected Q or P, got %c", pkt->type);
 	}
 
+	if (client->link != NULL) {
+		idle_tx = client->link->idle_tx;
+	}
+
 	/* don't process same query again */
 	if (is_rewritten(query_str)) return true;
 
 	loggable_query_str = strip_newlines(query_str) ;
 	slog_debug(client, "rewrite_query: Username => %s", client->auth_user->name);
 	slog_debug(client, "rewrite_query: Orig Query=> %s", loggable_query_str);
+	slog_debug(client, "rewrite_query: idle_tx => %d", idle_tx);
+
 	free(loggable_query_str);
 
 	/* call python function to rewrite the query */
-	tmp_new_query_str = pycall(client, client->auth_user->name, query_str, cf_rewrite_query_py_module_file,
+	tmp_new_query_str = pycall(client, client->auth_user->name, query_str, idle_tx, cf_rewrite_query_py_module_file,
 			"rewrite_query");
 	if (tmp_new_query_str == NULL) {
 		slog_debug(client, "query unchanged");

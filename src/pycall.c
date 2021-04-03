@@ -18,7 +18,7 @@ This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS O
 #include "bouncer.h"
 #include <usual/pgutil.h>
 
-char *pycall(PgSocket *client, char *username, char *query_str, char *py_file,
+char *pycall(PgSocket *client, char *username, char *query_str, bool idle_tx, char *py_file,
 		char* py_function) {
 	PyObject *pName = NULL, *pModule = NULL, *pFunc = NULL;
 	PyObject *pArgs = NULL, *pValue = NULL;
@@ -26,7 +26,7 @@ char *pycall(PgSocket *client, char *username, char *query_str, char *py_file,
 	char *py_pathtmp, *py_filetmp, *py_path, *py_module, *ext;
 	char *res = NULL;
 
-        /* setup python search path */
+    /* setup python search path */
 	py_pathtmp = strdup(py_file);
 	if (py_pathtmp == NULL) {
 		slog_error(client, "out of memory");
@@ -89,25 +89,8 @@ char *pycall(PgSocket *client, char *username, char *query_str, char *py_file,
 		goto finish;
 	}
 
-	/* Call function with two arguments - username and query_str */
-	pArgs = PyTuple_New(2);
-	if (pArgs == NULL) {
-		slog_error(client, "Python module <%s>: out of memory", py_module);
-		goto finish;
-	}
-	pValue = PyUnicode_FromString(username);
-	if (pValue == NULL) {
-		slog_error(client, "Python module <%s>: out of memory", py_module);
-		goto finish;
-	}
-	PyTuple_SetItem(pArgs, 0, pValue);
-	pValue = PyUnicode_FromString(query_str);
-	if (pValue == NULL) {
-		slog_error(client, "Python module <%s>: out of memory", py_module);
-		goto finish;
-	}
-	PyTuple_SetItem(pArgs, 1, pValue);
-	pValue = PyObject_CallObject(pFunc, pArgs);
+	/* Call function with three arguments - username, query_str and idle_tx */
+	pValue = PyObject_CallFunction(pFunc, "ssi", username, query_str, idle_tx);
 	if (pValue == NULL) {
 		slog_error(client, "Python Function <%s> failed to return a value",
 				py_function);
