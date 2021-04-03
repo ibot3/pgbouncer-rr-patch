@@ -1,0 +1,11 @@
+--- ../pgbouncer/src/loader.c 2021-04-03
++++ ./src/loader.c 2021-04-03
+@@ -201,7 +201,7 @@ bool parse_database(void *base, const char *name, const char *connstr)
+ 	cv.value_p = &pool_mode;
+ 	cv.extra = (const void *)pool_mode_map;
+ 
+-	if (strcmp(name, "*") == 0) {
++	if (name[0] == '*') {
+ 		set_autodb(connstr);
+ 		return true;
+ 	}

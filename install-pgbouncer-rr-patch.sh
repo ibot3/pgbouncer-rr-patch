@@ -33,6 +33,7 @@ MERGEFILES="\
    Makefile\
    src/client.c\
    src/main.c\
+   src/loader.c\
    include/bouncer.h\
    "
 for file in $MERGEFILES
