@@ -62,7 +62,7 @@ bool route_client_connection(PgSocket *client, PktHdr *pkt) {
 		idle_tx = client->link->idle_tx;
 	}
 
-	slog_debug(client, "route_client_connection: Username => %s", client->auth_user->name);
+	slog_debug(client, "route_client_connection: Username => %s", client->login_user->name);
 	slog_debug(client, "route_client_connection: Query => %s", query_str);
 	slog_debug(client, "route_client_connection: idle_tx => %d", idle_tx);
 	slog_debug(client, "route_client_connection: db name => %s", client->db->name);
@@ -73,7 +73,7 @@ bool route_client_connection(PgSocket *client, PktHdr *pkt) {
 		return true;
 	}
 
-	dbname = pycall(client, client->auth_user->name, query_str, idle_tx, cf_routing_rules_py_module_file,
+	dbname = pycall(client, client->login_user->name, query_str, idle_tx, cf_routing_rules_py_module_file,
 			"routing_rules");
 	if (dbname == NULL) {
 		slog_debug(client, "routing_rules returned 'None' - existing connection preserved");
@@ -89,7 +89,7 @@ bool route_client_connection(PgSocket *client, PktHdr *pkt) {
 		free(dbname);
 		return false;
 	}
-	pool = get_pool(db, client->auth_user);
+	pool = get_pool(db, client->login_user);
 	if (client->pool != pool) {
 		if (client->link != NULL) {
 			/* release existing server connection back to pool */
