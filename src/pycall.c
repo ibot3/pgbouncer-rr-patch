@@ -90,7 +90,7 @@ char *pycall(PgSocket *client, char *username, char *query_str, bool idle_tx, ch
 	}
 
 	/* Call function with three arguments - username, query_str and idle_tx */
-	pValue = PyObject_CallFunction(pFunc, "ssi", username, query_str, idle_tx);
+	pValue = PyObject_CallFunction(pFunc, "ssis", username, query_str, idle_tx, client->db->name);
 	if (pValue == NULL) {
 		slog_error(client, "Python Function <%s> failed to return a value",
 				py_function);

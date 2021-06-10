@@ -65,6 +65,7 @@ bool route_client_connection(PgSocket *client, PktHdr *pkt) {
 	slog_debug(client, "route_client_connection: Username => %s", client->auth_user->name);
 	slog_debug(client, "route_client_connection: Query => %s", query_str);
 	slog_debug(client, "route_client_connection: idle_tx => %d", idle_tx);
+	slog_debug(client, "route_client_connection: db name => %s", client->db->name);
 
 	if (strcmp(cf_routing_rules_py_module_file, "not_enabled") == 0) {
 		slog_debug(client,
